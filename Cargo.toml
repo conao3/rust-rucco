@@ -1,0 +1,11 @@
+[package]
+name = "rucco"
+version = "0.1.0"
+edition = "2021"
+description = "Common Lisp implementation"
+license = "Apache-2.0"
+repository = "https://github.com/conao3/rust-rucco"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
