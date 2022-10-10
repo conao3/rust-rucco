@@ -9,3 +9,7 @@ repository = "https://github.com/conao3/rust-rucco"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.65"
+rustyline = "10.0.0"
+thiserror = "1.0.37"
+xdg = "2.4.1"
