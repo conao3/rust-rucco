@@ -26,7 +26,7 @@ fn repl() -> anyhow::Result<()> {
                 match res {
                     Ok(res) => println!("{}", res),
                     Err(e) => {
-                        if let Some(types::RuccoErr::ReplEmptyError) = e.downcast_ref() {
+                        if let Some(types::RuccoReplErr::EmptyInput) = e.downcast_ref() {
                             break;
                         };
                         eprintln!("{:#?}", e);
