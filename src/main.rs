@@ -1,7 +1,7 @@
 use anyhow::Context as _;
 
-use rucco::types;
 use rucco::core;
+use rucco::types;
 
 fn repl() -> anyhow::Result<()> {
     let mut rl = rustyline::Editor::<()>::new()?;
@@ -33,7 +33,9 @@ fn repl() -> anyhow::Result<()> {
                     }
                 }
             }
-            Err(rustyline::error::ReadlineError::Interrupted | rustyline::error::ReadlineError::Eof) => {
+            Err(
+                rustyline::error::ReadlineError::Interrupted | rustyline::error::ReadlineError::Eof,
+            ) => {
                 break;
             }
             Err(err) => {

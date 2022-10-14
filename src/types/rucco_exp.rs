@@ -1,19 +1,22 @@
 use super::RuccoAtom;
 
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
 pub enum RuccoExp {
     Atom(RuccoAtom),
-    Cons{car: Rc<RefCell<RuccoExp>>, cdr: Rc<RefCell<RuccoExp>>},
+    Cons {
+        car: Rc<RefCell<RuccoExp>>,
+        cdr: Rc<RefCell<RuccoExp>>,
+    },
 }
 
 impl std::fmt::Display for RuccoExp {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             RuccoExp::Atom(e) => write!(f, "{}", e),
-            RuccoExp::Cons{car, cdr} => write!(f, "({} . {})", car.borrow(), cdr.borrow()),
+            RuccoExp::Cons { car, cdr } => write!(f, "({} . {})", car.borrow(), cdr.borrow()),
         }
     }
 }
@@ -50,7 +53,10 @@ where
     T: Into<Self>,
 {
     fn new_cons(car: S, cdr: T) -> Self {
-        RuccoExp::Cons{car: Rc::new(RefCell::new(car.into())), cdr: Rc::new(RefCell::new(cdr.into()))}
+        RuccoExp::Cons {
+            car: Rc::new(RefCell::new(car.into())),
+            cdr: Rc::new(RefCell::new(cdr.into())),
+        }
     }
 }
 
@@ -63,6 +69,9 @@ where
     T: Into<RuccoExp>,
 {
     fn cons(self, cdr: T) -> RuccoExp {
-        RuccoExp::Cons{car: Rc::new(RefCell::new(cdr.into())), cdr: self}
+        RuccoExp::Cons {
+            car: Rc::new(RefCell::new(cdr.into())),
+            cdr: self,
+        }
     }
 }
