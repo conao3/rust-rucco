@@ -66,6 +66,9 @@ pub enum RuccoRuntimeErr {
     #[error("VoidFunction")]
     VoidFunction { name: String },
 
+    #[error("InvalidReference")]
+    InvalidReference,
+
     #[error("WrongTypeArgument")]
     WrongTypeArgument {
         name: String,
