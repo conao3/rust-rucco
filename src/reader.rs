@@ -99,7 +99,7 @@ impl Reader<'_> {
                             let cell = self.arena.alloc((&nil, &nil).into());
                             ptr.borrow_mut().setcar(&car)?;
                             ptr.borrow_mut().setcdr(&cell)?;
-                            ptr = ptr.clone().borrow().cdr()?;
+                            ptr = cell.upgrade().unwrap();
                         },
                     }
                 }
