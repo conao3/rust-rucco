@@ -61,20 +61,26 @@ impl Reader<'_> {
                 Ok(self.arena.nil())
             }
             Some(_) => {
-                let res = self.arena.cell();
-                let mut ptr = res
-                    .upgrade()
-                    .ok_or(types::RuccoRuntimeErr::InvalidReference)?;
+                let mut res: Option<types::RuccoExpRef> = None;
+                let mut prev: Option<types::RuccoExpRef> = None;
                 loop {
                     let car = self.read()?;
+                    let cur = self.arena.alloc_cons(&car, &self.arena.nil());
+                    let cur_ptr = cur.upgrade().unwrap();
+                    if res.is_none() {
+                        res = Some(cur.clone());
+                    }
+                    if let Some(prev_) = prev {
+                        let prev_ptr = prev_.upgrade().unwrap();
+                        prev_ptr.borrow_mut().setcdr(&cur)?;
+                    }
 
                     self.skip_whitespace();
                     match self.input.chars().next() {
                         None => anyhow::bail!(types::RuccoReaderErr::UnexpectedEof),
                         Some(')') => {
                             self.input = &self.input[1..]; // skip ')'
-                            ptr.borrow_mut().setcar(&car)?;
-                            return Ok(res);
+                            break;
                         }
                         Some('.') => {
                             self.input = &self.input[1..]; // skip '.'
@@ -85,23 +91,19 @@ impl Reader<'_> {
                                 None => anyhow::bail!(types::RuccoReaderErr::UnexpectedEof),
                                 Some(')') => {
                                     self.input = &self.input[1..]; // skip ')'
-                                    ptr.borrow_mut().setcar(&car)?;
-                                    ptr.borrow_mut().setcdr(&cdr)?;
-                                    return Ok(res);
+                                    cur_ptr.borrow_mut().setcdr(&cdr)?;
+                                    break;
                                 }
                                 Some(char) => {
                                     anyhow::bail!(types::RuccoReaderErr::UnexpectedChar { char })
                                 }
                             }
                         }
-                        Some(_) => {
-                            let cell = self.arena.cell();
-                            ptr.borrow_mut().setcar(&car)?;
-                            ptr.borrow_mut().setcdr(&cell)?;
-                            ptr = cell.upgrade().unwrap();
-                        },
+                        Some(_) => {},
                     }
+                    prev = Some(cur);
                 }
+                Ok(res.unwrap())
             }
         }
     }
