@@ -61,20 +61,13 @@ impl Reader<'_> {
                 Ok(self.arena.nil())
             }
             Some(_) => {
-                let mut res: Option<types::RuccoExpRef> = None;
-                let mut prev: Option<types::RuccoExpRef> = None;
-                loop {
-                    let car = self.read()?;
-                    let cur = self.arena.alloc_cons(&car, &self.arena.nil());
-                    let cur_ptr = cur.upgrade().unwrap();
-                    if res.is_none() {
-                        res = Some(cur.clone());
-                    }
-                    if let Some(prev_) = prev {
-                        let prev_ptr = prev_.upgrade().unwrap();
-                        prev_ptr.borrow_mut().setcdr(&cur)?;
-                    }
+                let car = self.read()?;
+                let mut cur = self.arena.alloc_cons(&car, &self.arena.nil());
+                let mut cur_ptr = cur.upgrade().unwrap();
 
+                let mut prev: types::RuccoExpRef = cur.clone();
+                let res: types::RuccoExpRef = cur.clone();
+                loop {
                     self.skip_whitespace();
                     match self.input.chars().next() {
                         None => anyhow::bail!(types::RuccoReaderErr::UnexpectedEof),
@@ -99,11 +92,18 @@ impl Reader<'_> {
                                 }
                             }
                         }
-                        Some(_) => {},
+                        Some(_) => {
+                            let car = self.read()?;
+                            cur = self.arena.alloc_cons(&car, &self.arena.nil());
+                            cur_ptr = cur.upgrade().unwrap();
+
+                            let prev_ptr = prev.upgrade().unwrap();
+                            prev_ptr.borrow_mut().setcdr(&cur)?;
+                        },
                     }
-                    prev = Some(cur);
+                    prev = cur;
                 }
-                Ok(res.unwrap())
+                Ok(res)
             }
         }
     }
