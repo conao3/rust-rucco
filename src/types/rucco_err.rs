@@ -23,6 +23,7 @@ pub enum RuccoDataType {
 
     // atom
     Int,
+    Float,
     Symbol,
 
     // cons
@@ -46,6 +47,10 @@ impl From<&RuccoExp> for RuccoActualDataType {
             RuccoExp::Atom(atom) => match atom {
                 super::RuccoAtom::Int(e) => RuccoActualDataType {
                     data_type: vec![RuccoDataType::Atom, RuccoDataType::Int],
+                    value: e.to_string(),
+                },
+                super::RuccoAtom::Float(e) => RuccoActualDataType {
+                    data_type: vec![RuccoDataType::Atom, RuccoDataType::Float],
                     value: e.to_string(),
                 },
                 super::RuccoAtom::Symbol(e) => RuccoActualDataType {

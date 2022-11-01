@@ -33,6 +33,14 @@ impl Reader<'_> {
             return Ok(self.arena.alloc(i.into()));
         }
 
+        if let Some(m) = FLOAT_PATTERN.captures(self.input) {
+            let s = m.get(1).unwrap().as_str();
+            let f = s.parse::<f64>().unwrap();
+            self.input = &self.input[s.len()..];
+
+            return Ok(self.arena.alloc(f.into()));
+        }
+
         if let Some(m) = SYMBOL_PATTERN.captures(self.input) {
             let s = m.get(0).unwrap().as_str();
             self.input = &self.input[s.len()..];
@@ -161,21 +169,25 @@ mod tests {
         assert_eq!(*exp_ptr.borrow(), 42.into());
     }
 
-    // // #[test]
-    // // fn test_read_atom_3() {
-    // //     let input = "42.3";
-    // //     let mut reader = Reader::new(input);
-    // //     let exp = reader.read().unwrap();
-    // //     assert_eq!(exp, Atom(Float(42.3)));
-    // // }
+    #[test]
+    fn test_read_atom_3() {
+        let input = "42.3";
+        let arena = &mut types::RuccoArena::default();
+        let mut reader = Reader::new(input, arena);
+        let exp = reader.read().unwrap();
+        let exp_ptr = exp.upgrade().unwrap();
+        assert_eq!(*exp_ptr.borrow(), 42.3.into());
+    }
 
-    // // #[test]
-    // // fn test_read_atom_4() {
-    // //     let input = "   42.3";
-    // //     let mut reader = Reader::new(input);
-    // //     let exp = reader.read().unwrap();
-    // //     assert_eq!(exp, Atom(Float(42.3)));
-    // // }
+    #[test]
+    fn test_read_atom_4() {
+        let input = "   42.3";
+        let arena = &mut types::RuccoArena::default();
+        let mut reader = Reader::new(input, arena);
+        let exp = reader.read().unwrap();
+        let exp_ptr = exp.upgrade().unwrap();
+        assert_eq!(*exp_ptr.borrow(), 42.3.into());
+    }
 
     #[test]
     fn test_read_atom_5() {
