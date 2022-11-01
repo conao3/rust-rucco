@@ -65,8 +65,8 @@ impl Reader<'_> {
                 let mut cur = self.arena.alloc_cons(&car, &self.arena.nil());
                 let mut cur_ptr = cur.upgrade().unwrap();
 
-                let mut prev = cur.clone();
                 let res = cur.clone();
+                let mut prev = cur.clone();
                 loop {
                     self.skip_whitespace();
                     match self.input.chars().next() {
@@ -99,9 +99,9 @@ impl Reader<'_> {
 
                             let prev_ptr = prev.upgrade().unwrap();
                             prev_ptr.borrow_mut().setcdr(&cur)?;
-                        },
+                            prev = cur;
+                        }
                     }
-                    prev = cur;
                 }
                 Ok(res)
             }
@@ -122,7 +122,7 @@ impl Reader<'_> {
                 let quote = self.arena.alloc(types::RuccoExp::new_symbol("quote"));
                 let exp = self.read()?;
 
-                Ok(self.arena.alloc_list(vec!(&quote, &exp)))
+                Ok(self.arena.alloc_list(vec![&quote, &exp]))
             }
             '(' => self.read_cons(),
             ')' => Err(anyhow::anyhow!(types::RuccoReaderErr::UnexpectedEof)),
