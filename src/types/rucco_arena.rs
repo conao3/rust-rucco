@@ -5,6 +5,8 @@ use std::rc::Rc;
 
 pub struct RuccoArena {
     arena: Vec<RuccoExpRefStrong>,
+    nil: RuccoExpRef,
+    t: RuccoExpRef,
 }
 
 impl RuccoArena {
@@ -13,13 +15,25 @@ impl RuccoArena {
         self.arena.push(exp_ref.clone());
         Rc::downgrade(&exp_ref)
     }
+
+    pub fn nil(&self) -> RuccoExpRef {
+        self.nil.clone()
+    }
+
+    pub fn t(&self) -> RuccoExpRef {
+        self.t.clone()
+    }
 }
 
 impl Default for RuccoArena {
     fn default() -> Self {
-        Self {
-            arena: Vec::with_capacity(10000),
-        }
+        let mut arena: Vec<RuccoExpRefStrong> = Vec::with_capacity(10000);
+        arena.push(Rc::new(RefCell::new(RuccoExp::new_symbol("nil"))));
+        arena.push(Rc::new(RefCell::new(RuccoExp::new_symbol("t"))));
+
+        let nil = Rc::downgrade(&arena[0]);
+        let t = Rc::downgrade(&arena[1]);
+        Self { arena, nil, t }
     }
 }
 
@@ -30,7 +44,7 @@ mod tests {
     #[test]
     fn test_alloc() {
         let mut arena = RuccoArena::default();
-        let nil = arena.alloc(RuccoExp::nil());
+        let nil = arena.nil();
         let c1 = arena.alloc(1.into());
         let c2 = arena.alloc(2.into());
         let c3 = arena.alloc(3.into());

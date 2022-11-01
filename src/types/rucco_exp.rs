@@ -107,36 +107,6 @@ impl RuccoExp {
     {
         RuccoExp::Atom(RuccoAtom::new_symbol(e))
     }
-
-    /// Create a RuccoExp::Atom::Symbol("nil")
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use rucco::types::*;
-    ///
-    /// let e = RuccoExp::nil();
-    ///
-    /// assert_eq!(e, RuccoExp::Atom(RuccoAtom::Symbol("nil".to_string())));
-    /// ```
-    pub fn nil() -> Self {
-        RuccoExp::new_symbol("nil")
-    }
-
-    /// Create a RuccoExp::Atom::Symbol("t")
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use rucco::types::*;
-    ///
-    /// let e = RuccoExp::t();
-    ///
-    /// assert_eq!(e, RuccoExp::Atom(RuccoAtom::Symbol("t".to_string())));
-    /// ```
-    pub fn t() -> Self {
-        RuccoExp::new_symbol("t")
-    }
 }
 
 /// Accessors
@@ -233,7 +203,7 @@ impl RuccoExp {
     /// use std::cell::RefCell;
     ///
     /// let mut arena = RuccoArena::default();
-    /// let nil = arena.alloc(RuccoExp::nil());
+    /// let nil = arena.nil();
     /// let c1 = arena.alloc(1.into());
     /// let c2 = arena.alloc(2.into());
     /// let c3 = arena.alloc(3.into());
@@ -273,7 +243,7 @@ impl RuccoExp {
     /// use std::cell::RefCell;
     ///
     /// let mut arena = RuccoArena::default();
-    /// let nil = arena.alloc(RuccoExp::nil());
+    /// let nil = arena.nil();
     /// let c1 = arena.alloc(1.into());
     /// let c2 = arena.alloc(2.into());
     /// let c3 = arena.alloc(3.into());
@@ -313,7 +283,7 @@ mod tests {
     #[test]
     fn test_cons() {
         let mut arena = RuccoArena::default();
-        let nil = arena.alloc(RuccoExp::nil());
+        let nil = arena.nil();
         let c1 = arena.alloc(1.into());
         let c2 = arena.alloc(2.into());
         let c3 = arena.alloc(3.into());
@@ -330,7 +300,7 @@ mod tests {
     #[test]
     fn test_cons_iter() {
         let mut arena = RuccoArena::default();
-        let nil = arena.alloc(RuccoExp::nil());
+        let nil = arena.nil();
         let c1 = arena.alloc(1.into());
         let c2 = arena.alloc(2.into());
         let c3 = arena.alloc(3.into());
@@ -351,7 +321,7 @@ mod tests {
         let mut arena = RuccoArena::default();
 
         // cons
-        let nil = arena.alloc(RuccoExp::nil());
+        let nil = arena.nil();
         let v1 = arena.alloc(5.into());
         let v2 = arena.alloc(6.into());
         let v3 = arena.alloc(10.into());
