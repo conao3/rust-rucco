@@ -65,8 +65,8 @@ impl Reader<'_> {
                 let mut cur = self.arena.alloc_cons(&car, &self.arena.nil());
                 let mut cur_ptr = cur.upgrade().unwrap();
 
-                let mut prev: types::RuccoExpRef = cur.clone();
-                let res: types::RuccoExpRef = cur.clone();
+                let mut prev = cur.clone();
+                let res = cur.clone();
                 loop {
                     self.skip_whitespace();
                     match self.input.chars().next() {
