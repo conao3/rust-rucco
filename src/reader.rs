@@ -61,8 +61,7 @@ impl Reader<'_> {
                 Ok(self.arena.nil())
             }
             Some(_) => {
-                let nil = self.arena.nil();
-                let res = self.arena.alloc((&nil, &nil).into());
+                let res = self.arena.cell();
                 let mut ptr = res
                     .upgrade()
                     .ok_or(types::RuccoRuntimeErr::InvalidReference)?;
@@ -96,7 +95,7 @@ impl Reader<'_> {
                             }
                         }
                         Some(_) => {
-                            let cell = self.arena.alloc((&nil, &nil).into());
+                            let cell = self.arena.cell();
                             ptr.borrow_mut().setcar(&car)?;
                             ptr.borrow_mut().setcdr(&cell)?;
                             ptr = cell.upgrade().unwrap();
@@ -119,11 +118,9 @@ impl Reader<'_> {
             '\'' => {
                 self.input = &self.input[1..]; // skip '\''
                 let quote = self.arena.alloc(types::RuccoExp::new_symbol("quote"));
-                let nil = self.arena.nil();
                 let exp = self.read()?;
 
-                let body = self.arena.alloc((&exp, &nil).into());
-                Ok(self.arena.alloc((&quote, &body).into()))
+                Ok(self.arena.alloc_list(vec!(&quote, &exp)))
             }
             '(' => self.read_cons(),
             ')' => Err(anyhow::anyhow!(types::RuccoReaderErr::UnexpectedEof)),

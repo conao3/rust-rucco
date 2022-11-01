@@ -16,12 +16,29 @@ impl RuccoArena {
         Rc::downgrade(&exp_ref)
     }
 
+    pub fn alloc_cons(&mut self, car: &RuccoExpRef, cdr: &RuccoExpRef) -> RuccoExpRef {
+        self.alloc((car, cdr).into())
+    }
+
+    pub fn alloc_list(&mut self, exps: Vec<&RuccoExpRef>) -> RuccoExpRef {
+        let mut list = self.nil();
+        for exp in exps.iter().rev() {
+            list = self.alloc_cons(exp, &list);
+        }
+        list
+    }
+
     pub fn nil(&self) -> RuccoExpRef {
         self.nil.clone()
     }
 
     pub fn t(&self) -> RuccoExpRef {
         self.t.clone()
+    }
+
+    pub fn cell(&mut self) -> RuccoExpRef {
+        let nil = self.nil();
+        self.alloc((&nil, &nil).into())
     }
 }
 
