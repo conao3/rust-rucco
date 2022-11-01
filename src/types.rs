@@ -10,3 +10,5 @@ pub use rucco_err::RuccoReaderErr;
 pub use rucco_err::RuccoReplErr;
 pub use rucco_err::RuccoRuntimeErr;
 pub use rucco_exp::RuccoExp;
+pub use rucco_exp::RuccoExpRef;
+pub use rucco_exp::RuccoExpRefStrong;

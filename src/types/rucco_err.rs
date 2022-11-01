@@ -10,6 +10,9 @@ pub enum RuccoReplErr {
 pub enum RuccoReaderErr {
     #[error("UnexpectedEof")]
     UnexpectedEof,
+
+    #[error("UnexpectedChar")]
+    UnexpectedChar { char: char },
 }
 
 #[derive(Debug)]
