@@ -116,18 +116,15 @@ impl Reader<'_> {
             .ok_or(types::RuccoReaderErr::UnexpectedEof)?;
 
         match c {
-            // '\'' => {
-            //     self.input = &self.input[1..]; // skip '\''
-            //     Ok(Rc::new(RefCell::new(types::RuccoExp::Cons {
-            //         car: Rc::new(RefCell::new(types::RuccoExp::new_symbol
-            //             ("quote")
-            //         )),
-            //         cdr: Rc::new(RefCell::new(types::RuccoExp::Cons {
-            //             car: self.read()?,
-            //             cdr: Rc::new(RefCell::new(types::RuccoExp::new_symbol("nil"))),
-            //         })),
-            //     })))
-            // }
+            '\'' => {
+                self.input = &self.input[1..]; // skip '\''
+                let quote = self.arena.alloc(types::RuccoExp::new_symbol("quote"));
+                let nil = self.arena.alloc(types::RuccoExp::nil());
+                let exp = self.read()?;
+
+                let body = self.arena.alloc((&exp, &nil).into());
+                Ok(self.arena.alloc((&quote, &body).into()))
+            }
             '(' => self.read_cons(),
             ')' => Err(anyhow::anyhow!(types::RuccoReaderErr::UnexpectedEof)),
             _ => self.read_atom(),
@@ -281,5 +278,18 @@ mod tests {
         let exp_ = reader.read().unwrap();
         let exp_ptr = exp_.upgrade().unwrap();
         assert_eq!(*exp_ptr.borrow().to_string(), "(1 . (2 . 3))".to_string());
+    }
+
+    #[test]
+    fn test_read_quote() {
+        let input = "'a";
+        let arena = &mut types::RuccoArena::default();
+        let mut reader = Reader::new(input, arena);
+        let exp_ = reader.read().unwrap();
+        let exp_ptr = exp_.upgrade().unwrap();
+        assert_eq!(
+            *exp_ptr.borrow().to_string(),
+            "(quote . (a . nil))".to_string()
+        );
     }
 }
