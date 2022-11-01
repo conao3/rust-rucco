@@ -13,6 +13,7 @@ fn repl() -> anyhow::Result<()> {
     let history_file_path = history_file.as_path();
     _ = rl.load_history(history_file_path);
 
+    let mut arena = types::RuccoArena::default();
     // let mut env = core::default_env();
     let mut env = std::collections::HashMap::new();
 
@@ -21,7 +22,7 @@ fn repl() -> anyhow::Result<()> {
         match &line {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
-                let res = core::rep(line, &mut env);
+                let res = core::rep(line, &mut env, &mut arena);
 
                 match res {
                     Ok(res) => println!("{}", res),
