@@ -22,7 +22,18 @@ impl RuccoArena {
 
     pub fn alloc_list(&mut self, exps: Vec<&RuccoExpRef>) -> RuccoExpRef {
         let mut list = self.nil();
-        for exp in exps.iter().rev() {
+        for exp in exps.into_iter().rev() {
+            list = self.alloc_cons(exp, &list);
+        }
+        list
+    }
+
+    pub fn alloc_dotlist(&mut self, exps: Vec<&RuccoExpRef>) -> RuccoExpRef {
+        let mut iter = exps.into_iter().rev();
+        let last_cdr = iter.next().unwrap();
+        let last_car = iter.next().unwrap();
+        let mut list = self.alloc_cons(last_car, last_cdr);
+        for exp in iter {
             list = self.alloc_cons(exp, &list);
         }
         list
