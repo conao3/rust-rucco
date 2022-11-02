@@ -16,22 +16,34 @@ fn comp(
     env: &mut core::RuccoEnv,
     code: &types::RuccoExpRef,
 ) -> anyhow::Result<types::RuccoExpRef> {
-    let exp_ptr = exp.upgrade().unwrap();
-    let x = match *exp_ptr.borrow() {
+    let exp_ptr = exp.upgrade().ok_or(types::RuccoRuntimeErr::InvalidReference)?;
+    let ldc = arena.alloc(types::RuccoExp::new_symbol("ldc"));
+    let x = match &*exp_ptr.borrow() {
         types::RuccoExp::Atom(ref atom) => match atom {
             types::RuccoAtom::Symbol(ref symbol) => {
-                unreachable!()
+                unimplemented!()
             }
             ref _atom => {
-                let ldc = arena.alloc(types::RuccoExp::new_symbol("ldc"));
                 Ok(arena.alloc_dotlist(vec![&ldc, &exp, &code]))
             }
         },
         types::RuccoExp::Cons {
-            car: ref _car,
-            cdr: ref _cdr,
+            car: ref car,
+            cdr: ref cdr,
         } => {
-            unreachable!("cons")
+            let car_ptr = car.upgrade().ok_or(types::RuccoRuntimeErr::InvalidReference)?;
+            let cdr_ptr = cdr.upgrade().ok_or(types::RuccoRuntimeErr::InvalidReference)?;
+            let x = match &*car_ptr.borrow() {
+                types::RuccoExp::Atom(ref atom) => match atom {
+                    types::RuccoAtom::Symbol(ref sym) if sym == "quote" => {
+                        Ok(arena.alloc_dotlist(vec![&ldc, cdr_ptr.borrow().car_weak_ref()?, &code]))
+                    }
+                    types::RuccoAtom::Symbol(ref sym) => unimplemented!(),
+                    _ => unimplemented!(),
+                }
+                types::RuccoExp::Cons {..} => unimplemented!()
+            };
+            x
         }
     };
     x

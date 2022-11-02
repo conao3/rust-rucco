@@ -130,6 +130,28 @@ impl RuccoExp {
         }
     }
 
+    pub fn car_weak(&self) -> anyhow::Result<RuccoExpRef> {
+        match self {
+            RuccoExp::Atom(_) => Err(anyhow::anyhow!(RuccoRuntimeErr::WrongTypeArgument {
+                name: "car".to_string(),
+                expected: RuccoDataType::Cons,
+                actual: RuccoActualDataType::from(self)
+            })),
+            RuccoExp::Cons { car, .. } => Ok(car.clone()),
+        }
+    }
+
+    pub fn car_weak_ref(&self) -> anyhow::Result<&RuccoExpRef> {
+        match self {
+            RuccoExp::Atom(_) => Err(anyhow::anyhow!(RuccoRuntimeErr::WrongTypeArgument {
+                name: "car".to_string(),
+                expected: RuccoDataType::Cons,
+                actual: RuccoActualDataType::from(self)
+            })),
+            RuccoExp::Cons { car, .. } => Ok(car),
+        }
+    }
+
     pub fn cdr(&self) -> anyhow::Result<RuccoExpRefStrong> {
         match self {
             RuccoExp::Atom(_) => Err(anyhow::anyhow!(RuccoRuntimeErr::WrongTypeArgument {
@@ -140,6 +162,28 @@ impl RuccoExp {
             RuccoExp::Cons { cdr, .. } => {
                 Ok(cdr.upgrade().ok_or(RuccoRuntimeErr::InvalidReference)?)
             }
+        }
+    }
+
+    pub fn cdr_weak(&self) -> anyhow::Result<RuccoExpRef> {
+        match self {
+            RuccoExp::Atom(_) => Err(anyhow::anyhow!(RuccoRuntimeErr::WrongTypeArgument {
+                name: "cdr".to_string(),
+                expected: RuccoDataType::Cons,
+                actual: RuccoActualDataType::from(self)
+            })),
+            RuccoExp::Cons { cdr, .. } => Ok(cdr.clone()),
+        }
+    }
+
+    pub fn cdr_weak_ref(&self) -> anyhow::Result<&RuccoExpRef> {
+        match self {
+            RuccoExp::Atom(_) => Err(anyhow::anyhow!(RuccoRuntimeErr::WrongTypeArgument {
+                name: "cdr".to_string(),
+                expected: RuccoDataType::Cons,
+                actual: RuccoActualDataType::from(self)
+            })),
+            RuccoExp::Cons { cdr, .. } => Ok(cdr),
         }
     }
 
