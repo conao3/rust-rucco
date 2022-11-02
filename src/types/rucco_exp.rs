@@ -18,16 +18,22 @@ impl std::fmt::Display for RuccoExp {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             RuccoExp::Atom(e) => write!(f, "{}", e),
-            RuccoExp::Cons { car, cdr } => {
-                match || -> anyhow::Result<String> {
-                    let car_rc = car.upgrade().ok_or(RuccoRuntimeErr::InvalidReference)?;
-                    let cdr_rc = cdr.upgrade().ok_or(RuccoRuntimeErr::InvalidReference)?;
+            RuccoExp::Cons { .. } => {
+                let mut lst: Vec<String> = Vec::new();
 
-                    Ok(format!("({} . {})", car_rc.borrow(), cdr_rc.borrow()))
-                }() {
-                    Ok(e) => write!(f, "{}", e),
-                    Err(e) => write!(f, "{}", e),
+                for (car, cdr) in self.into_cons_iter().unwrap() {
+                    lst.push(format!("{}", car.borrow()));
+                    match &*cdr.borrow() {
+                        RuccoExp::Atom(RuccoAtom::Symbol(s)) if s == "nil" => {}
+                        RuccoExp::Atom(_) => {
+                            lst.push(".".to_string());
+                            lst.push(format!("{}", cdr.borrow()));
+                        }
+                        RuccoExp::Cons { .. } => (),
+                    }
                 }
+
+                write!(f, "({})", lst.join(" "))
             }
         }
     }
