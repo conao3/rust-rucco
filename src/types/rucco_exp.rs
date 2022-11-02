@@ -308,12 +308,12 @@ impl RuccoExp {
     /// let e1 = arena.alloc((&c1, &nil).into());
     /// let e2 = arena.alloc((&c2, &e1).into());
     /// let e3 = arena.alloc((&c3, &e2).into());
-    /// assert_eq!(e3.upgrade().unwrap().borrow().to_string(), "(3 . (2 . (1 . nil)))");
+    /// assert_eq!(e3.upgrade().unwrap().borrow().to_string(), "(3 2 1)");
     ///
     /// let v1 = arena.alloc(42.into());
     /// let e2_ptr = e2.upgrade().unwrap();
     /// e2_ptr.borrow_mut().setcar(&v1);
-    /// assert_eq!(e3.upgrade().unwrap().borrow().to_string(), "(3 . (42 . (1 . nil)))");
+    /// assert_eq!(e3.upgrade().unwrap().borrow().to_string(), "(3 42 1)");
     /// ```
     pub fn setcar<'a>(&mut self, car: &'a RuccoExpRef) -> anyhow::Result<&'a RuccoExpRef> {
         match self {
@@ -348,12 +348,12 @@ impl RuccoExp {
     /// let e1 = arena.alloc((&c1, &nil).into());
     /// let e2 = arena.alloc((&c2, &e1).into());
     /// let e3 = arena.alloc((&c3, &e2).into());
-    /// assert_eq!(e3.upgrade().unwrap().borrow().to_string(), "(3 . (2 . (1 . nil)))");
+    /// assert_eq!(e3.upgrade().unwrap().borrow().to_string(), "(3 2 1)");
     ///
     /// let v1 = arena.alloc(42.into());
     /// let e2_ptr = e2.upgrade().unwrap();
     /// e2_ptr.borrow_mut().setcdr(&v1);
-    /// assert_eq!(e3.upgrade().unwrap().borrow().to_string(), "(3 . (2 . 42))");
+    /// assert_eq!(e3.upgrade().unwrap().borrow().to_string(), "(3 2 . 42)");
     /// ```
     pub fn setcdr<'a>(&mut self, cdr: &'a RuccoExpRef) -> anyhow::Result<&'a RuccoExpRef> {
         match self {
@@ -388,10 +388,7 @@ mod tests {
         let e1 = arena.alloc((&c1, &nil).into());
         let e2 = arena.alloc((&c2, &e1).into());
         let e3 = arena.alloc((&c3, &e2).into());
-        assert_eq!(
-            e3.upgrade().unwrap().borrow().to_string(),
-            "(3 . (2 . (1 . nil)))"
-        );
+        assert_eq!(e3.upgrade().unwrap().borrow().to_string(), "(3 2 1)");
     }
 
     #[test]
@@ -427,26 +424,17 @@ mod tests {
         let b = arena.alloc((&v2, &a).into());
         let c = arena.alloc((&v3, &a).into());
 
-        assert_eq!(a.upgrade().unwrap().borrow().to_string(), "(5 . nil)");
-        assert_eq!(b.upgrade().unwrap().borrow().to_string(), "(6 . (5 . nil))");
-        assert_eq!(
-            c.upgrade().unwrap().borrow().to_string(),
-            "(10 . (5 . nil))"
-        );
+        assert_eq!(a.upgrade().unwrap().borrow().to_string(), "(5)");
+        assert_eq!(b.upgrade().unwrap().borrow().to_string(), "(6 5)");
+        assert_eq!(c.upgrade().unwrap().borrow().to_string(), "(10 5)");
 
         // modify atom
         let v1_ptr = v1.upgrade().unwrap();
         *v1_ptr.borrow_mut() = 15.into();
 
-        assert_eq!(a.upgrade().unwrap().borrow().to_string(), "(15 . nil)");
-        assert_eq!(
-            b.upgrade().unwrap().borrow().to_string(),
-            "(6 . (15 . nil))"
-        );
-        assert_eq!(
-            c.upgrade().unwrap().borrow().to_string(),
-            "(10 . (15 . nil))"
-        );
+        assert_eq!(a.upgrade().unwrap().borrow().to_string(), "(15)");
+        assert_eq!(b.upgrade().unwrap().borrow().to_string(), "(6 15)");
+        assert_eq!(c.upgrade().unwrap().borrow().to_string(), "(10 15)");
 
         // modify cons
         let w1 = arena.alloc(42.into());
@@ -456,11 +444,8 @@ mod tests {
         *a_ptr.borrow_mut() = (&w1, &w2).into();
 
         assert_eq!(a.upgrade().unwrap().borrow().to_string(), "(42 . 43)");
-        assert_eq!(b.upgrade().unwrap().borrow().to_string(), "(6 . (42 . 43))");
-        assert_eq!(
-            c.upgrade().unwrap().borrow().to_string(),
-            "(10 . (42 . 43))"
-        );
+        assert_eq!(b.upgrade().unwrap().borrow().to_string(), "(6 42 . 43)");
+        assert_eq!(c.upgrade().unwrap().borrow().to_string(), "(10 42 . 43)");
 
         // modify car
         let x1 = arena.alloc(100.into());
@@ -472,13 +457,7 @@ mod tests {
         }
 
         assert_eq!(a.upgrade().unwrap().borrow().to_string(), "(100 . 43)");
-        assert_eq!(
-            b.upgrade().unwrap().borrow().to_string(),
-            "(6 . (100 . 43))"
-        );
-        assert_eq!(
-            c.upgrade().unwrap().borrow().to_string(),
-            "(10 . (100 . 43))"
-        );
+        assert_eq!(b.upgrade().unwrap().borrow().to_string(), "(6 100 . 43)");
+        assert_eq!(c.upgrade().unwrap().borrow().to_string(), "(10 100 . 43)");
     }
 }

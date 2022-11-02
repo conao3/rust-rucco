@@ -80,9 +80,6 @@ mod tests {
         let e1 = arena.alloc((&c1, &nil).into());
         let e2 = arena.alloc((&c2, &e1).into());
         let e3 = arena.alloc((&c3, &e2).into());
-        assert_eq!(
-            e3.upgrade().unwrap().borrow().to_string(),
-            "(3 . (2 . (1 . nil)))"
-        );
+        assert_eq!(e3.upgrade().unwrap().borrow().to_string(), "(3 2 1)");
     }
 }

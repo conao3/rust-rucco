@@ -222,10 +222,7 @@ mod tests {
         let mut reader = Reader::new(input, arena);
         let exp_ = reader.read().unwrap();
         let exp_ptr = exp_.upgrade().unwrap();
-        assert_eq!(
-            *exp_ptr.borrow().to_string(),
-            "(1 . (2 . (3 . nil)))".to_string()
-        );
+        assert_eq!(*exp_ptr.borrow().to_string(), "(1 2 3)".to_string());
     }
 
     #[test]
@@ -235,7 +232,7 @@ mod tests {
         let mut reader = Reader::new(input, arena);
         let exp_ = reader.read().unwrap();
         let exp_ptr = exp_.upgrade().unwrap();
-        assert_eq!(*exp_ptr.borrow().to_string(), "(1 . (2 . 3))".to_string());
+        assert_eq!(*exp_ptr.borrow().to_string(), "(1 2 . 3)".to_string());
     }
 
     #[test]
@@ -263,10 +260,7 @@ mod tests {
         let mut reader = Reader::new(input, arena);
         let exp_ = reader.read().unwrap();
         let exp_ptr = exp_.upgrade().unwrap();
-        assert_eq!(
-            *exp_ptr.borrow().to_string(),
-            "(1 . (2 . (3 . nil)))".to_string()
-        );
+        assert_eq!(*exp_ptr.borrow().to_string(), "(1 2 3)".to_string());
     }
 
     #[test]
@@ -276,7 +270,7 @@ mod tests {
         let mut reader = Reader::new(input, arena);
         let exp_ = reader.read().unwrap();
         let exp_ptr = exp_.upgrade().unwrap();
-        assert_eq!(*exp_ptr.borrow().to_string(), "(1 . (2 . 3))".to_string());
+        assert_eq!(*exp_ptr.borrow().to_string(), "(1 2 . 3)".to_string());
     }
 
     #[test]
@@ -286,9 +280,6 @@ mod tests {
         let mut reader = Reader::new(input, arena);
         let exp_ = reader.read().unwrap();
         let exp_ptr = exp_.upgrade().unwrap();
-        assert_eq!(
-            *exp_ptr.borrow().to_string(),
-            "(quote . (a . nil))".to_string()
-        );
+        assert_eq!(*exp_ptr.borrow().to_string(), "(quote a)".to_string());
     }
 }
