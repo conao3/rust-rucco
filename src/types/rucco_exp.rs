@@ -195,7 +195,7 @@ impl Iterator for RuccoExpIter {
                         actual: RuccoActualDataType::from(&*cdr)
                     });
                 }
-                RuccoExp::Cons { car, cdr, .. } => {
+                RuccoExp::Cons { car, cdr } => {
                     self.car = Some(car.clone());
                     self.cdr = Some(cdr.clone());
                 }

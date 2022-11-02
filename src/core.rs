@@ -1,6 +1,6 @@
-use crate::types;
-use crate::reader;
 use crate::compiler;
+use crate::reader;
+use crate::types;
 
 pub type RuccoEnv = std::collections::HashMap<String, String>;
 
@@ -9,7 +9,11 @@ pub fn read(buf: &str, arena: &mut types::RuccoArena) -> anyhow::Result<types::R
     reader.read()
 }
 
-pub fn eval(exp: &types::RuccoExpRef, env: &mut RuccoEnv, arena: &mut types::RuccoArena) -> anyhow::Result<types::RuccoExpRef> {
+pub fn eval(
+    exp: &types::RuccoExpRef,
+    env: &mut RuccoEnv,
+    arena: &mut types::RuccoArena,
+) -> anyhow::Result<types::RuccoExpRef> {
     compiler::compile(exp, arena)
 }
 
