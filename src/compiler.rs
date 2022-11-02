@@ -6,7 +6,8 @@ pub fn compile(
     arena: &mut types::RuccoArena,
 ) -> anyhow::Result<types::RuccoExpRef> {
     let stop = arena.alloc(types::RuccoExp::new_symbol("stop"));
-    let code = arena.alloc_list(vec![&stop]);
+    let stop_code = arena.alloc_list(vec![&stop]);
+    let code = arena.alloc_list(vec![&stop_code]);
     comp(exp, arena, &mut std::collections::HashMap::new(), &code)
 }
 
@@ -25,7 +26,10 @@ fn comp(
             types::RuccoAtom::Symbol(ref _sym) => {
                 unimplemented!()
             }
-            _atom => Ok(arena.alloc_dotlist(vec![&ldc, exp, code])),
+            _atom => {
+                let exp_code = arena.alloc_list(vec![&ldc, exp]);
+                Ok(arena.alloc_dotlist(vec![&exp_code, code]))
+            }
         },
         types::RuccoExp::Cons { ref car, ref cdr } => {
             let car_ptr = car
@@ -37,7 +41,9 @@ fn comp(
             let x = match &*car_ptr.borrow() {
                 types::RuccoExp::Atom(ref atom) => match atom {
                     types::RuccoAtom::Symbol(ref sym) if sym == "quote" => {
-                        Ok(arena.alloc_dotlist(vec![&ldc, cdr_ptr.borrow().car_weak_ref()?, code]))
+                        let exp_code =
+                            arena.alloc_list(vec![&ldc, cdr_ptr.borrow().car_weak_ref()?]);
+                        Ok(arena.alloc_dotlist(vec![&exp_code, code]))
                     }
                     types::RuccoAtom::Symbol(ref _sym) => unimplemented!(),
                     _ => unimplemented!(),
