@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::core;
 use crate::types;
 
@@ -14,15 +16,21 @@ pub fn compile(
 fn comp(
     exp: &types::RuccoExpRef,
     arena: &mut types::RuccoArena,
-    _env: &mut core::RuccoEnv,
+    env: &mut core::RuccoEnv,
     code: &types::RuccoExpRef,
 ) -> anyhow::Result<types::RuccoExpRef> {
     let exp_ptr = exp
         .upgrade()
         .ok_or(types::RuccoRuntimeErr::InvalidReference)?;
     let ldc = arena.alloc(types::RuccoExp::new_symbol("ldc"));
+    let sel = arena.alloc(types::RuccoExp::new_symbol("sel"));
+    let join = arena.alloc(types::RuccoExp::new_symbol("join"));
     let x = match &*exp_ptr.borrow() {
         types::RuccoExp::Atom(ref atom) => match atom {
+            types::RuccoAtom::Symbol(ref sym) if sym == "t" || sym == "nil" => {
+                let exp_code = arena.alloc_list(vec![&ldc, exp]);
+                Ok(arena.alloc_list(vec![&exp_code, code]))
+            }
             types::RuccoAtom::Symbol(ref _sym) => {
                 unimplemented!()
             }
@@ -44,6 +52,25 @@ fn comp(
                         let exp_code =
                             arena.alloc_list(vec![&ldc, cdr_ptr.borrow().car_weak_ref()?]);
                         Ok(arena.alloc_dotlist(vec![&exp_code, code]))
+                    }
+                    types::RuccoAtom::Symbol(ref sym) if sym == "if" => {
+                        let nil = arena.nil();
+                        let args = cdr_ptr.borrow().extract_args("compile", (2, 3), &nil)?;
+                        let test_ptr = &args[0];
+                        let then_ptr = &args[1];
+                        let else_ptr = &args[2];
+
+                        let join_exp = arena.alloc_list(vec![&join]);
+                        let join_code = arena.alloc_list(vec![&join_exp]);
+
+                        let test_code = comp(&Rc::downgrade(test_ptr), arena, env, &nil)?;
+                        let then_code = comp(&Rc::downgrade(then_ptr), arena, env, &join_code)?;
+                        let else_code = comp(&Rc::downgrade(else_ptr), arena, env, &join_code)?;
+
+                        let test_ptr = test_code.upgrade().unwrap();
+                        let test_car_code = &test_ptr.borrow().car_weak()?;
+                        let sel_body = arena.alloc_list(vec![&sel, &then_code, &else_code]);
+                        Ok(arena.alloc_dotlist(vec![test_car_code, &sel_body, code]))
                     }
                     types::RuccoAtom::Symbol(ref _sym) => unimplemented!(),
                     _ => unimplemented!(),

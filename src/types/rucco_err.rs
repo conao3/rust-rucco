@@ -87,7 +87,7 @@ pub enum RuccoRuntimeErr {
     #[error("WrongNumberOfArguments")]
     WrongNumberOfArguments {
         name: String,
-        expected: usize,
+        expected: (usize, usize),
         actual: usize,
     },
 }
