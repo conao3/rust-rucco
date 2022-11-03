@@ -331,7 +331,7 @@ impl RuccoExp {
     /// use std::cell::RefCell;
     ///
     /// let mut arena = RuccoArena::default();
-    /// let nil = arena.nil();
+    /// let nil = arena.alloc_symbol("nil");
     /// let c1 = arena.alloc(1.into());
     /// let c2 = arena.alloc(2.into());
     /// let c3 = arena.alloc(3.into());
@@ -371,7 +371,7 @@ impl RuccoExp {
     /// use std::cell::RefCell;
     ///
     /// let mut arena = RuccoArena::default();
-    /// let nil = arena.nil();
+    /// let nil = arena.alloc_symbol("nil");
     /// let c1 = arena.alloc(1.into());
     /// let c2 = arena.alloc(2.into());
     /// let c3 = arena.alloc(3.into());
@@ -411,7 +411,7 @@ mod tests {
     #[test]
     fn test_cons() {
         let mut arena = RuccoArena::default();
-        let nil = arena.nil();
+        let nil = arena.alloc_symbol("nil");
         let c1 = arena.alloc(1.into());
         let c2 = arena.alloc(2.into());
         let c3 = arena.alloc(3.into());
@@ -425,7 +425,7 @@ mod tests {
     #[test]
     fn test_cons_iter() {
         let mut arena = RuccoArena::default();
-        let nil = arena.nil();
+        let nil = arena.alloc_symbol("nil");
         let c1 = arena.alloc(1.into());
         let c2 = arena.alloc(2.into());
         let c3 = arena.alloc(3.into());
@@ -446,7 +446,7 @@ mod tests {
         let mut arena = RuccoArena::default();
 
         // cons
-        let nil = arena.nil();
+        let nil = arena.alloc_symbol("nil");
         let v1 = arena.alloc(5.into());
         let v2 = arena.alloc(6.into());
         let v3 = arena.alloc(10.into());

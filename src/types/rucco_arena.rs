@@ -5,8 +5,7 @@ use std::rc::Rc;
 
 pub struct RuccoArena {
     arena: Vec<RuccoExpRefStrong>,
-    nil: RuccoExpRef,
-    t: RuccoExpRef,
+    symbols: std::collections::HashMap<String, RuccoExpRef>,
 }
 
 impl RuccoArena {
@@ -16,52 +15,42 @@ impl RuccoArena {
         Rc::downgrade(&exp_ref)
     }
 
+    pub fn alloc_symbol(&mut self, sym: &str) -> RuccoExpRef {
+        self.alloc(RuccoExp::new_symbol(sym))
+    }
+
     pub fn alloc_cons(&mut self, car: &RuccoExpRef, cdr: &RuccoExpRef) -> RuccoExpRef {
         self.alloc((car, cdr).into())
     }
 
     pub fn alloc_list(&mut self, exps: Vec<&RuccoExpRef>) -> RuccoExpRef {
-        let mut list = self.nil();
+        let mut lst = self.alloc_symbol("nil");
         for exp in exps.into_iter().rev() {
-            list = self.alloc_cons(exp, &list);
+            lst = self.alloc_cons(exp, &lst);
         }
-        list
+        lst
     }
 
     pub fn alloc_dotlist(&mut self, exps: Vec<&RuccoExpRef>) -> RuccoExpRef {
         let mut iter = exps.into_iter().rev();
         let last_cdr = iter.next().unwrap();
         let last_car = iter.next().unwrap();
-        let mut list = self.alloc_cons(last_car, last_cdr);
+        let mut lst = self.alloc_cons(last_car, last_cdr);
         for exp in iter {
-            list = self.alloc_cons(exp, &list);
+            lst = self.alloc_cons(exp, &lst);
         }
-        list
-    }
-
-    pub fn nil(&self) -> RuccoExpRef {
-        self.nil.clone()
-    }
-
-    pub fn t(&self) -> RuccoExpRef {
-        self.t.clone()
+        lst
     }
 
     pub fn cell(&mut self) -> RuccoExpRef {
-        let nil = self.nil();
+        let nil = self.alloc_symbol("nil");
         self.alloc((&nil, &nil).into())
     }
 }
 
 impl Default for RuccoArena {
     fn default() -> Self {
-        let mut arena: Vec<RuccoExpRefStrong> = Vec::with_capacity(10000);
-        arena.push(Rc::new(RefCell::new(RuccoExp::new_symbol("nil"))));
-        arena.push(Rc::new(RefCell::new(RuccoExp::new_symbol("t"))));
-
-        let nil = Rc::downgrade(&arena[0]);
-        let t = Rc::downgrade(&arena[1]);
-        Self { arena, nil, t }
+        Self { arena: Vec::with_capacity(10000), symbols: std::collections::HashMap::new() }
     }
 }
 
@@ -72,7 +61,7 @@ mod tests {
     #[test]
     fn test_alloc() {
         let mut arena = RuccoArena::default();
-        let nil = arena.nil();
+        let nil = arena.alloc_symbol("nil");
         let c1 = arena.alloc(1.into());
         let c2 = arena.alloc(2.into());
         let c3 = arena.alloc(3.into());

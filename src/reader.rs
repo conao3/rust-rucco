@@ -58,11 +58,12 @@ impl Reader<'_> {
             None => anyhow::bail!(types::RuccoReaderErr::UnexpectedEof),
             Some(')') => {
                 self.input = &self.input[1..]; // skip ')'
-                Ok(self.arena.nil())
+                Ok(self.arena.alloc_symbol("nil"))
             }
             Some(_) => {
+                let nil = self.arena.alloc_symbol("nil");
                 let car = self.read()?;
-                let mut cur = self.arena.alloc_cons(&car, &self.arena.nil());
+                let mut cur = self.arena.alloc_cons(&car, &nil);
                 let mut cur_ptr = cur.upgrade().unwrap();
 
                 let res = cur.clone();
@@ -94,7 +95,7 @@ impl Reader<'_> {
                         }
                         Some(_) => {
                             let car = self.read()?;
-                            cur = self.arena.alloc_cons(&car, &self.arena.nil());
+                            cur = self.arena.alloc_cons(&car, &nil);
                             cur_ptr = cur.upgrade().unwrap();
 
                             let prev_ptr = prev.upgrade().unwrap();

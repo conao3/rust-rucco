@@ -54,7 +54,7 @@ fn comp(
                         Ok(arena.alloc_dotlist(vec![&exp_code, code]))
                     }
                     types::RuccoAtom::Symbol(ref sym) if sym == "if" => {
-                        let nil = arena.nil();
+                        let nil = arena.alloc_symbol("nil");
                         let args = cdr_ptr.borrow().extract_args("compile", (2, 3), &nil)?;
                         let test_ptr = &args[0];
                         let then_ptr = &args[1];
