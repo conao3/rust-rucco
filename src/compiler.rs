@@ -67,7 +67,9 @@ fn comp(
                         let then_code = comp(&Rc::downgrade(then_ptr), arena, env, &join_code)?;
                         let else_code = comp(&Rc::downgrade(else_ptr), arena, env, &join_code)?;
 
-                        let test_ptr = test_code.upgrade().unwrap();
+                        let test_ptr = test_code
+                            .upgrade()
+                            .ok_or(types::RuccoRuntimeErr::InvalidReference)?;
                         let test_car_code = &test_ptr.borrow().car_weak()?;
                         let sel_body = arena.alloc_list(vec![&sel, &then_code, &else_code]);
                         Ok(arena.alloc_dotlist(vec![test_car_code, &sel_body, code]))

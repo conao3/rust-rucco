@@ -24,5 +24,10 @@ pub fn print(buf: &str) -> String {
 pub fn rep(buf: &str, env: &mut RuccoEnv, arena: &mut types::RuccoArena) -> anyhow::Result<String> {
     let exp = read(buf, arena)?;
     let exp = eval(&exp, env, arena)?;
-    Ok(print(&exp.upgrade().unwrap().borrow().to_string()))
+    Ok(print(
+        &exp.upgrade()
+            .ok_or(types::RuccoRuntimeErr::InvalidReference)?
+            .borrow()
+            .to_string(),
+    ))
 }

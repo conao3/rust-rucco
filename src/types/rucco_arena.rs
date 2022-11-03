@@ -56,7 +56,10 @@ impl RuccoArena {
 
 impl Default for RuccoArena {
     fn default() -> Self {
-        Self { arena: Vec::with_capacity(10000), symbols: std::collections::HashMap::new() }
+        Self {
+            arena: Vec::with_capacity(10000),
+            symbols: std::collections::HashMap::new(),
+        }
     }
 }
 
