@@ -7,7 +7,7 @@ pub fn compile(
     exp: &types::RuccoExpRef,
     arena: &mut types::RuccoArena,
 ) -> anyhow::Result<types::RuccoExpRef> {
-    let stop = arena.alloc(types::RuccoExp::new_symbol("stop"));
+    let stop = arena.alloc_symbol("stop");
     let stop_code = arena.alloc_list(vec![&stop]);
     let code = arena.alloc_list(vec![&stop_code]);
     comp(exp, arena, &mut std::collections::HashMap::new(), &code)
@@ -22,9 +22,9 @@ fn comp(
     let exp_ptr = exp
         .upgrade()
         .ok_or(types::RuccoRuntimeErr::InvalidReference)?;
-    let ldc = arena.alloc(types::RuccoExp::new_symbol("ldc"));
-    let sel = arena.alloc(types::RuccoExp::new_symbol("sel"));
-    let join = arena.alloc(types::RuccoExp::new_symbol("join"));
+    let ldc = arena.alloc_symbol("ldc");
+    let sel = arena.alloc_symbol("sel");
+    let join = arena.alloc_symbol("join");
     let x = match &*exp_ptr.borrow() {
         types::RuccoExp::Atom(ref atom) => match atom {
             types::RuccoAtom::Symbol(ref sym) if sym == "t" || sym == "nil" => {

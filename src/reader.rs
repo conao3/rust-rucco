@@ -44,7 +44,7 @@ impl Reader<'_> {
         if let Some(m) = SYMBOL_PATTERN.captures(self.input) {
             let s = m.get(0).unwrap().as_str();
             self.input = &self.input[s.len()..];
-            return Ok(self.arena.alloc(types::RuccoExp::new_symbol(s)));
+            return Ok(self.arena.alloc_symbol(s));
         }
 
         unreachable!()
@@ -126,7 +126,7 @@ impl Reader<'_> {
         match c {
             '\'' => {
                 self.input = &self.input[1..]; // skip '\''
-                let quote = self.arena.alloc(types::RuccoExp::new_symbol("quote"));
+                let quote = self.arena.alloc_symbol("quote");
                 let exp = self.read()?;
 
                 Ok(self.arena.alloc_list(vec![&quote, &exp]))
