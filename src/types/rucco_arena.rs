@@ -16,7 +16,13 @@ impl RuccoArena {
     }
 
     pub fn alloc_symbol(&mut self, sym: &str) -> RuccoExpRef {
-        self.alloc(RuccoExp::new_symbol(sym))
+        if let Some(exp) = self.symbols.get(sym) {
+            exp.clone()
+        } else {
+            let exp = self.alloc(RuccoExp::new_symbol(sym));
+            self.symbols.insert(sym.to_string(), exp.clone());
+            exp
+        }
     }
 
     pub fn alloc_cons(&mut self, car: &RuccoExpRef, cdr: &RuccoExpRef) -> RuccoExpRef {
