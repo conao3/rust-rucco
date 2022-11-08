@@ -25,10 +25,6 @@ impl RuccoArena {
         }
     }
 
-    pub fn alloc_cons(&mut self, car: &RuccoExpRef, cdr: &RuccoExpRef) -> RuccoExpRef {
-        self.alloc((car, cdr).into())
-    }
-
     pub fn cell(&mut self) -> RuccoExpRef {
         let nil = self.alloc_symbol("nil");
         self.alloc((&nil, &nil).into())

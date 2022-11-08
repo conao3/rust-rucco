@@ -61,9 +61,8 @@ impl Reader<'_> {
                 Ok(self.arena.alloc_symbol("nil"))
             }
             Some(_) => {
-                let nil = self.arena.alloc_symbol("nil");
                 let car = self.read()?;
-                let mut cur = self.arena.alloc_cons(&car, &nil);
+                let mut cur = types::alloc!(self.arena, [car]);
                 let mut cur_ptr = cur
                     .upgrade()
                     .ok_or(types::RuccoRuntimeErr::InvalidReference)?;
@@ -97,7 +96,7 @@ impl Reader<'_> {
                         }
                         Some(_) => {
                             let car = self.read()?;
-                            cur = self.arena.alloc_cons(&car, &nil);
+                            cur = types::alloc!(self.arena, [car]);
                             cur_ptr = cur
                                 .upgrade()
                                 .ok_or(types::RuccoRuntimeErr::InvalidReference)?;
