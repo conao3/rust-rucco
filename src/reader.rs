@@ -129,7 +129,7 @@ impl Reader<'_> {
                 let quote = self.arena.alloc_symbol("quote");
                 let exp = self.read()?;
 
-                Ok(self.arena.alloc_list(vec![&quote, &exp]))
+                Ok(types::alloc!(self.arena, [quote, exp]))
             }
             '(' => self.read_cons(),
             ')' => Err(anyhow::anyhow!(types::RuccoReaderErr::UnexpectedEof)),

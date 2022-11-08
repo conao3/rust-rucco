@@ -29,25 +29,6 @@ impl RuccoArena {
         self.alloc((car, cdr).into())
     }
 
-    pub fn alloc_list(&mut self, exps: Vec<&RuccoExpRef>) -> RuccoExpRef {
-        let mut lst = self.alloc_symbol("nil");
-        for exp in exps.into_iter().rev() {
-            lst = self.alloc_cons(exp, &lst);
-        }
-        lst
-    }
-
-    pub fn alloc_dotlist(&mut self, exps: Vec<&RuccoExpRef>) -> RuccoExpRef {
-        let mut iter = exps.into_iter().rev();
-        let last_cdr = iter.next().unwrap();
-        let last_car = iter.next().unwrap();
-        let mut lst = self.alloc_cons(last_car, last_cdr);
-        for exp in iter {
-            lst = self.alloc_cons(exp, &lst);
-        }
-        lst
-    }
-
     pub fn cell(&mut self) -> RuccoExpRef {
         let nil = self.alloc_symbol("nil");
         self.alloc((&nil, &nil).into())
@@ -55,22 +36,22 @@ impl RuccoArena {
 }
 
 macro_rules! alloc {
-    ($arena: ident, [$exp: tt]) => {{
-        let e = alloc!($arena, $exp);
+    ($arena: expr, [$exp: tt]) => {{
+        let e = crate::types::alloc!($arena, $exp);
         let nil = $arena.alloc_symbol("nil");
         $arena.alloc((e, nil).into())
     }};
-    ($arena: ident, [$car: tt ; $cdr: tt]) => {{
-        let car = alloc!($arena, $car);
-        let cdr = alloc!($arena, $cdr);
+    ($arena: expr, [$car: tt ; $cdr: tt]) => {{
+        let car = crate::types::alloc!($arena, $car);
+        let cdr = crate::types::alloc!($arena, $cdr);
         $arena.alloc((car, cdr).into())
     }};
-    ($arena: ident, [$car: tt, $($rest: tt),* $( ; $last_cdr: tt )?]) => {{
-        let car = alloc!($arena, $car);
-        let cdr = alloc!($arena, [$($rest),* $( ; $last_cdr )?]);
+    ($arena: expr, [$car: tt, $($rest: tt),* $( ; $last_cdr: tt )?]) => {{
+        let car = crate::types::alloc!($arena, $car);
+        let cdr = crate::types::alloc!($arena, [$($rest),* $( ; $last_cdr )?]);
         $arena.alloc((car, cdr).into())
     }};
-    ($arena: ident, $exp: tt) => {
+    ($arena: expr, $exp: tt) => {
         $exp.clone()
     };
 }
