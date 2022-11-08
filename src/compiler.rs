@@ -8,8 +8,7 @@ pub fn compile(
     arena: &mut types::RuccoArena,
 ) -> anyhow::Result<types::RuccoExpRef> {
     let stop = arena.alloc_symbol("stop");
-    let stop_code = types::alloc!(arena, [stop]);
-    let code = types::alloc!(arena, [stop_code]);
+    let code = types::alloc!(arena, [[stop]]);
     comp(exp, arena, &mut std::collections::HashMap::new(), &code)
 }
 
@@ -51,18 +50,16 @@ fn comp(
                     types::RuccoAtom::Symbol(ref sym) if sym == "quote" => {
                         let cdr_code_ = cdr_ptr.borrow();
                         let cdr_code = cdr_code_.car_weak_ref()?;
-                        let exp_code = types::alloc!(arena, [ldc, cdr_code]);
-                        Ok(types::alloc!(arena, [exp_code; code]))
+                        Ok(types::alloc!(arena, [[ldc, cdr_code]; code]))
                     }
                     types::RuccoAtom::Symbol(ref sym) if sym == "if" => {
-                        let nil = arena.alloc_symbol("nil");
+                        let nil = types::alloc!(arena, []);
                         let args = cdr_ptr.borrow().extract_args("compile", (2, 3), &nil)?;
                         let test_ptr = &args[0];
                         let then_ptr = &args[1];
                         let else_ptr = &args[2];
 
-                        let join_exp = types::alloc!(arena, [join]);
-                        let join_code = types::alloc!(arena, [join_exp]);
+                        let join_code = types::alloc!(arena, [[join]]);
 
                         let test_code = comp(&Rc::downgrade(test_ptr), arena, env, &nil)?;
                         let then_code = comp(&Rc::downgrade(then_ptr), arena, env, &join_code)?;
@@ -72,8 +69,7 @@ fn comp(
                             .upgrade()
                             .ok_or(types::RuccoRuntimeErr::InvalidReference)?;
                         let test_car_code = &test_ptr.borrow().car_weak()?;
-                        let sel_body = types::alloc!(arena, [sel, then_code, else_code]);
-                        Ok(types::alloc!(arena, [test_car_code, sel_body; code]))
+                        Ok(types::alloc!(arena, [test_car_code, [sel, then_code, else_code]; code]))
                     }
                     types::RuccoAtom::Symbol(ref _sym) => unimplemented!(),
                     _ => unimplemented!(),

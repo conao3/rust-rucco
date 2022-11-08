@@ -27,9 +27,12 @@ impl RuccoArena {
 }
 
 macro_rules! alloc {
+    ($arena: expr, []) => {
+        $arena.alloc_symbol("nil")
+    };
     ($arena: expr, [$exp: tt]) => {{
         let e = crate::types::alloc!($arena, $exp);
-        let nil = $arena.alloc_symbol("nil");
+        let nil = crate::types::alloc!($arena, []);
         $arena.alloc((e, nil).into())
     }};
     ($arena: expr, [$car: tt ; $cdr: tt]) => {{
