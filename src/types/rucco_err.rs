@@ -90,4 +90,7 @@ pub enum RuccoRuntimeErr {
         expected: (usize, usize),
         actual: usize,
     },
+
+    #[error("Unreachable")]
+    Unreachable,
 }

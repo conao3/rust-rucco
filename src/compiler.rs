@@ -54,16 +54,16 @@ fn comp(
                     }
                     types::RuccoAtom::Symbol(ref sym) if sym == "if" => {
                         let nil = types::alloc!(arena, []);
-                        let args = cdr_ptr.borrow().extract_args("compile", (2, 3), &nil)?;
-                        let test_ptr = &args[0];
-                        let then_ptr = &args[1];
-                        let else_ptr = &args[2];
+                        let mut args = cdr_ptr.borrow().extract_args("compile", (2, 3), &nil)?;
+                        let else_ptr = args.pop().ok_or(types::RuccoRuntimeErr::Unreachable)?;
+                        let then_ptr = args.pop().ok_or(types::RuccoRuntimeErr::Unreachable)?;
+                        let test_ptr = args.pop().ok_or(types::RuccoRuntimeErr::Unreachable)?;
 
                         let join_code = types::alloc!(arena, [[join]]);
 
-                        let test_code = comp(&Rc::downgrade(test_ptr), arena, env, &nil)?;
-                        let then_code = comp(&Rc::downgrade(then_ptr), arena, env, &join_code)?;
-                        let else_code = comp(&Rc::downgrade(else_ptr), arena, env, &join_code)?;
+                        let test_code = comp(&Rc::downgrade(&test_ptr), arena, env, &nil)?;
+                        let then_code = comp(&Rc::downgrade(&then_ptr), arena, env, &join_code)?;
+                        let else_code = comp(&Rc::downgrade(&else_ptr), arena, env, &join_code)?;
 
                         let test_ptr = test_code
                             .upgrade()
