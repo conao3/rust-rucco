@@ -24,11 +24,6 @@ impl RuccoArena {
             exp
         }
     }
-
-    pub fn cell(&mut self) -> RuccoExpRef {
-        let nil = self.alloc_symbol("nil");
-        self.alloc((&nil, &nil).into())
-    }
 }
 
 macro_rules! alloc {
