@@ -54,6 +54,29 @@ impl RuccoArena {
     }
 }
 
+macro_rules! alloc {
+    ($arena: ident, [$exp: tt]) => {{
+        let e = alloc!($arena, $exp);
+        let nil = $arena.alloc_symbol("nil");
+        $arena.alloc((e, nil).into())
+    }};
+    ($arena: ident, [$car: tt ; $cdr: tt]) => {{
+        let car = alloc!($arena, $car);
+        let cdr = alloc!($arena, $cdr);
+        $arena.alloc((car, cdr).into())
+    }};
+    ($arena: ident, [$car: tt, $($rest: tt),* $( ; $last_cdr: tt )?]) => {{
+        let car = alloc!($arena, $car);
+        let cdr = alloc!($arena, [$($rest),* $( ; $last_cdr )?]);
+        $arena.alloc((car, cdr).into())
+    }};
+    ($arena: ident, $exp: tt) => {
+        $exp.clone()
+    };
+}
+
+pub(crate) use alloc;
+
 impl Default for RuccoArena {
     fn default() -> Self {
         Self {
@@ -79,5 +102,51 @@ mod tests {
         let e2 = arena.alloc((&c2, &e1).into());
         let e3 = arena.alloc((&c3, &e2).into());
         assert_eq!(e3.upgrade().unwrap().borrow().to_string(), "(3 2 1)");
+    }
+
+    #[test]
+    fn test_alloc_macro() {
+        let mut arena = RuccoArena::default();
+        let c1 = arena.alloc(1.into());
+        let c2 = arena.alloc(2.into());
+        let c3 = arena.alloc(3.into());
+
+        let e1 = alloc!(arena, [c1]);
+        assert_eq!(e1.upgrade().unwrap().borrow().to_string(), "(1)");
+
+        let e2 = alloc!(arena, [c1, c2, c3]);
+        assert_eq!(e2.upgrade().unwrap().borrow().to_string(), "(1 2 3)");
+
+        let e3 = alloc!(arena, [[c1, c2], c3]);
+        assert_eq!(e3.upgrade().unwrap().borrow().to_string(), "((1 2) 3)");
+
+        let e4 = alloc!(arena, [c1, [c2, c3]]);
+        assert_eq!(e4.upgrade().unwrap().borrow().to_string(), "(1 (2 3))");
+    }
+
+    #[test]
+    fn test_alloc_macro_dotlist() {
+        let mut arena = RuccoArena::default();
+        let c1 = arena.alloc(1.into());
+        let c2 = arena.alloc(2.into());
+        let c3 = arena.alloc(3.into());
+
+        let e1 = alloc!(arena, [c1]);
+        assert_eq!(e1.upgrade().unwrap().borrow().to_string(), "(1)");
+
+        let e2 = alloc!(arena, [c1; c2]);
+        assert_eq!(e2.upgrade().unwrap().borrow().to_string(), "(1 . 2)");
+
+        let e3 = alloc!(arena, [c1, c2, c3; e1]);
+        assert_eq!(e3.upgrade().unwrap().borrow().to_string(), "(1 2 3 1)");
+
+        let e4 = alloc!(arena, [c1, c2, c3; [c1, c2]]);
+        assert_eq!(e4.upgrade().unwrap().borrow().to_string(), "(1 2 3 1 2)");
+
+        let e5 = alloc!(arena, [c1, c2, c3; [c1, c2; c3]]);
+        assert_eq!(
+            e5.upgrade().unwrap().borrow().to_string(),
+            "(1 2 3 1 2 . 3)"
+        );
     }
 }

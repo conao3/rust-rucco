@@ -96,6 +96,12 @@ impl std::convert::From<(&RuccoExpRef, &RuccoExpRef)> for RuccoExp {
     }
 }
 
+impl std::convert::From<(RuccoExpRef, RuccoExpRef)> for RuccoExp {
+    fn from((car, cdr): (RuccoExpRef, RuccoExpRef)) -> Self {
+        RuccoExp::Cons { car, cdr }
+    }
+}
+
 /// Constructors
 impl RuccoExp {
     /// Create a RuccoExp::Atom::Symbol
