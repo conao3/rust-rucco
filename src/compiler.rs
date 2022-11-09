@@ -54,7 +54,8 @@ fn comp(
                     }
                     types::RuccoAtom::Symbol(ref sym) if sym == "if" => {
                         let nil = types::alloc!(arena, []);
-                        let [test_ptr, then_ptr, else_ptr] = cdr_ptr.borrow().extract_args::<2,3>("comp", &nil)?;
+                        let [test_ptr, then_ptr, else_ptr] =
+                            cdr_ptr.borrow().extract_args::<2, 3>("comp", &nil)?;
 
                         let join_code = types::alloc!(arena, [[join]]);
 
