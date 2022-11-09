@@ -1,5 +1,3 @@
-use itertools::Itertools;
-
 use super::rucco_err::*;
 use super::RuccoAtom;
 
@@ -223,31 +221,27 @@ impl RuccoExp {
         }
     }
 
-    pub fn extract_args(
-        &self,
-        name: &str,
-        (arg_min, arg_max): (usize, usize),
-        nil_exp: &RuccoExpRef,
-    ) -> anyhow::Result<Vec<RuccoExpRefStrong>> {
+    pub fn extract_args<const N: usize, const M: usize>(&self, name: &str, nil_exp: &RuccoExpRef)
+        -> anyhow::Result<[RuccoExpRefStrong; M]> {
         let args = self.into_iter()?.collect::<anyhow::Result<Vec<_>>>()?;
-        if !(arg_min <= args.len() && args.len() <= arg_max) {
+
+        if !(N <= args.len() && args.len() <= M) {
             anyhow::bail!(RuccoRuntimeErr::WrongNumberOfArguments {
                 name: name.to_string(),
-                expected: (arg_min, arg_max),
+                expected: (N, M),
                 actual: args.len()
             });
         }
 
         let nil_ptr = nil_exp.upgrade().ok_or(RuccoRuntimeErr::InvalidReference)?;
+
         let lst = args
             .into_iter()
-            .zip_longest(vec![nil_ptr; arg_max].into_iter())
-            .map(|x| match x {
-                itertools::EitherOrBoth::Both(exp, _nil) => exp,
-                itertools::EitherOrBoth::Left(exp) => exp,
-                itertools::EitherOrBoth::Right(nil) => nil,
-            })
-            .collect();
+            .chain(std::iter::repeat(nil_ptr))
+            .take(M)
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap();
 
         Ok(lst)
     }
