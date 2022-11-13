@@ -196,57 +196,13 @@ impl RuccoExp {
         }
     }
 
-    // pub fn into_iter(
-    //     &self,
-    // ) -> anyhow::Result<impl Iterator<Item = anyhow::Result<RuccoExpRefStrong>>> {
-    //     match self {
-    //         RuccoExp::Atom(_) => anyhow::bail!(RuccoRuntimeErr::WrongTypeArgument {
-    //             name: "into_iter".to_string(),
-    //             expected: RuccoDataType::Cons,
-    //             actual: RuccoActualDataType::from(self)
-    //         }),
-    //         RuccoExp::Cons { car, cdr } => Ok(RuccoExpConsIter {
-    //             car: Some(car.clone()),
-    //             cdr: Some(cdr.clone()),
-    //         }
-    //         .map(|e| {
-    //             let car_ptr = e.0.upgrade().ok_or(RuccoRuntimeErr::InvalidReference)?;
-    //             let cdr_ptr = e.1.upgrade().ok_or(RuccoRuntimeErr::InvalidReference)?;
-    //             let x = match &*cdr_ptr.borrow() {
-    //                 RuccoExp::Atom(RuccoAtom::Symbol(sym)) if sym == "nil" => Ok(car_ptr),
-    //                 RuccoExp::Atom(..) => anyhow::bail!(RuccoRuntimeErr::WrongTypeArgument {
-    //                     name: "into_iter".to_string(),
-    //                     expected: RuccoDataType::Cons,
-    //                     actual: RuccoActualDataType::from(&*cdr_ptr.borrow())
-    //                 }),
-    //                 _ => Ok(car_ptr),
-    //             };
-    //             x
-    //         })),
-    //     }
-    // }
-
-    // pub fn into_cons_iter(&self) -> anyhow::Result<RuccoExpConsIter> {
-    //     match self {
-    //         RuccoExp::Atom(_) => anyhow::bail!(RuccoRuntimeErr::WrongTypeArgument {
-    //             name: "into_cons_iter".to_string(),
-    //             expected: RuccoDataType::Cons,
-    //             actual: RuccoActualDataType::from(self)
-    //         }),
-    //         RuccoExp::Cons { car, cdr } => Ok(RuccoExpConsIter {
-    //             car: Some(car.clone()),
-    //             cdr: Some(cdr.clone()),
-    //         }),
-    //     }
-    // }
-
     pub fn extract_args<const N: usize, const M: usize>(
         &self,
         name: &str,
         nil_exp: &RuccoExpRef,
     ) -> anyhow::Result<[RuccoExpRefStrong; M]> {
         let args = self
-            .into_iter()
+            .iter()?
             .collect::<anyhow::Result<Vec<_>>>()?
             .into_iter()
             .map(|e| e.upgrade())
@@ -274,72 +230,38 @@ impl RuccoExp {
     }
 }
 
-// pub struct RuccoExpConsIter {
-//     car: Option<RuccoExpRef>,
-//     cdr: Option<RuccoExpRef>,
-// }
+// Iter
 
-// impl Iterator for RuccoExpConsIter {
-//     type Item = (RuccoExpRef, RuccoExpRef);
-
-//     fn next(&mut self) -> Option<Self::Item> {
-//         let car = self.car.take()?;
-//         let cdr = self.cdr.take()?;
-
-//         Some(|| -> Self::Item {
-//             let cdr_ptr = cdr.upgrade().expect("Valid reference");
-
-//             match &*cdr_ptr.borrow() {
-//                 RuccoExp::Atom(_) => {
-//                     self.car = None;
-//                     self.cdr = None;
-//                 }
-//                 RuccoExp::Cons { car, cdr } => {
-//                     self.car = Some(car.clone());
-//                     self.cdr = Some(cdr.clone());
-//                 }
-//             }
-
-//             (car, cdr)
-//         }())
-//     }
-// }
-
-// Intoiter
-pub struct IntoConsIter {
+pub struct ConsIter {
     car: Option<RuccoExpRef>,
     cdr: Option<RuccoExpRef>,
 }
 
-impl Iterator for IntoConsIter {
+impl Iterator for ConsIter {
     type Item = (RuccoExpRef, RuccoExpRef);
 
     fn next(&mut self) -> Option<Self::Item> {
         let car = self.car.take()?;
         let cdr = self.cdr.take()?;
 
-        Some(|| -> Self::Item {
-            let cdr_ptr = cdr.upgrade().expect("Valid reference");
-
-            match &*cdr_ptr.borrow() {
-                RuccoExp::Atom(_) => {
-                    self.car = None;
-                    self.cdr = None;
-                }
-                RuccoExp::Cons { car, cdr } => {
-                    self.car = Some(car.clone());
-                    self.cdr = Some(cdr.clone());
-                }
+        let cdr_ptr = cdr.upgrade().expect("valid reference");
+        match &*cdr_ptr.borrow() {
+            RuccoExp::Atom(_) => {
+                self.car = None;
+                self.cdr = None;
             }
-
-            (car, cdr)
-        }())
+            RuccoExp::Cons { car, cdr } => {
+                self.car = Some(car.clone());
+                self.cdr = Some(cdr.clone());
+            }
+        }
+        Some((car, cdr))
     }
 }
 
-pub struct IntoIter(IntoConsIter);
+pub struct Iter(ConsIter);
 
-impl Iterator for IntoIter {
+impl Iterator for Iter {
     type Item = anyhow::Result<RuccoExpRef>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -348,7 +270,7 @@ impl Iterator for IntoIter {
             let x = match &*cdr_ptr.borrow() {
                 RuccoExp::Atom(RuccoAtom::Symbol(sym)) if sym == "nil" => Ok(car),
                 RuccoExp::Atom(..) => anyhow::bail!(RuccoRuntimeErr::WrongTypeArgument {
-                    name: "into_iter".to_string(),
+                    name: "iter".to_string(),
                     expected: RuccoDataType::Cons,
                     actual: RuccoActualDataType::from(&*cdr_ptr.borrow())
                 }),
@@ -360,54 +282,22 @@ impl Iterator for IntoIter {
 }
 
 impl RuccoExp {
-    pub fn into_cons_iter(self) -> anyhow::Result<IntoConsIter> {
-        match self {
-            RuccoExp::Atom(_) => anyhow::bail!(RuccoRuntimeErr::WrongTypeArgument {
-                name: "into_iter".to_string(),
-                expected: RuccoDataType::Cons,
-                actual: RuccoActualDataType::from(&self)
-            }),
-            RuccoExp::Cons { car, cdr } => Ok(IntoConsIter {
-                car: Some(car),
-                cdr: Some(cdr),
-            }),
-        }
-    }
-}
-
-impl IntoIterator for RuccoExp {
-    type Item = anyhow::Result<RuccoExpRef>;
-    type IntoIter: = IntoIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        IntoIter(self.into_cons_iter().unwrap())
-    }
-}
-
-// Iter
-
-impl RuccoExp {
-    pub fn cons_iter(&self) -> anyhow::Result<IntoConsIter> {
+    pub fn cons_iter(&self) -> anyhow::Result<ConsIter> {
         match self {
             RuccoExp::Atom(_) => anyhow::bail!(RuccoRuntimeErr::WrongTypeArgument {
                 name: "into_iter".to_string(),
                 expected: RuccoDataType::Cons,
                 actual: RuccoActualDataType::from(self)
             }),
-            RuccoExp::Cons { car, cdr } => Ok(IntoConsIter {
+            RuccoExp::Cons { car, cdr } => Ok(ConsIter {
                 car: Some(car.clone()),
                 cdr: Some(cdr.clone()),
             }),
         }
     }
-}
 
-impl IntoIterator for &RuccoExp {
-    type Item = anyhow::Result<RuccoExpRef>;
-    type IntoIter: = IntoIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        IntoIter(self.cons_iter().unwrap())
+    pub fn iter(&self) -> anyhow::Result<Iter> {
+        Ok(Iter(self.cons_iter()?))
     }
 }
 
@@ -527,7 +417,7 @@ mod tests {
 
         let e3_ptr = e3.upgrade().unwrap();
         let e3_ptr_own = e3_ptr.borrow();
-        let mut iter = e3_ptr_own.into_iter();
+        let mut iter = e3_ptr_own.iter().unwrap();
         let e = iter.next().unwrap().unwrap();
         assert_eq!(*e.upgrade().unwrap().borrow(), 3.into());
         let e = iter.next().unwrap().unwrap();
