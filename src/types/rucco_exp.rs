@@ -21,19 +21,16 @@ impl std::fmt::Display for RuccoExp {
             RuccoExp::Cons { .. } => {
                 let mut lst: Vec<String> = Vec::new();
 
-                for (car, cdr) in self.cons_iter().unwrap() {
-                    let car_ptr = car.upgrade().unwrap();
-                    let cdr_ptr = cdr.upgrade().unwrap();
-                    lst.push(format!("{}", car_ptr.borrow()));
-                    let x = match &*cdr_ptr.borrow() {
+                for (car, cdr) in self.cons_iter_ptr().unwrap() {
+                    lst.push(format!("{}", car.borrow()));
+                    match &*cdr.borrow() {
                         RuccoExp::Atom(RuccoAtom::Symbol(s)) if s == "nil" => {}
                         RuccoExp::Atom(_) => {
                             lst.push(".".to_string());
-                            lst.push(format!("{}", cdr_ptr.borrow()));
+                            lst.push(format!("{}", cdr.borrow()));
                         }
                         RuccoExp::Cons { .. } => (),
-                    };
-                    x
+                    }
                 }
 
                 write!(f, "({})", lst.join(" "))
@@ -201,12 +198,7 @@ impl RuccoExp {
         name: &str,
         nil_exp: &RuccoExpRef,
     ) -> anyhow::Result<[RuccoExpRefStrong; M]> {
-        let args = self
-            .iter()?
-            .collect::<anyhow::Result<Vec<_>>>()?
-            .into_iter()
-            .map(|e| e.upgrade())
-            .collect::<Option<Vec<_>>>().ok_or(RuccoRuntimeErr::InvalidReference)?;
+        let args = self.iter_ptr()?.collect::<anyhow::Result<Vec<_>>>()?;
 
         if !(N <= args.len() && args.len() <= M) {
             anyhow::bail!(RuccoRuntimeErr::WrongNumberOfArguments {
@@ -298,6 +290,26 @@ impl RuccoExp {
 
     pub fn iter(&self) -> anyhow::Result<Iter> {
         Ok(Iter(self.cons_iter()?))
+    }
+
+    pub fn cons_iter_ptr(
+        &self,
+    ) -> anyhow::Result<impl Iterator<Item = (RuccoExpRefStrong, RuccoExpRefStrong)>> {
+        Ok(self.cons_iter()?.map(|(car, cdr)| {
+            (
+                car.upgrade().expect("valid reference"),
+                cdr.upgrade().expect("valid reference"),
+            )
+        }))
+    }
+
+    pub fn iter_ptr(
+        &self,
+    ) -> anyhow::Result<impl Iterator<Item = anyhow::Result<RuccoExpRefStrong>>> {
+        Ok(self.iter()?.map(|x| match x {
+            Ok(x) => Ok(x.upgrade().expect("valid reference")),
+            Err(e) => Err(e),
+        }))
     }
 }
 
@@ -404,7 +416,7 @@ mod tests {
     }
 
     #[test]
-    fn test_cons_iter() {
+    fn test_iter_ptr() {
         let mut arena = RuccoArena::default();
         let nil = arena.alloc_symbol("nil");
         let c1 = arena.alloc(1.into());
@@ -417,13 +429,10 @@ mod tests {
 
         let e3_ptr = e3.upgrade().unwrap();
         let e3_ptr_own = e3_ptr.borrow();
-        let mut iter = e3_ptr_own.iter().unwrap();
-        let e = iter.next().unwrap().unwrap();
-        assert_eq!(*e.upgrade().unwrap().borrow(), 3.into());
-        let e = iter.next().unwrap().unwrap();
-        assert_eq!(*e.upgrade().unwrap().borrow(), 2.into());
-        let e = iter.next().unwrap().unwrap();
-        assert_eq!(*e.upgrade().unwrap().borrow(), 1.into());
+        let mut iter = e3_ptr_own.iter_ptr().unwrap();
+        assert_eq!(*iter.next().unwrap().unwrap().borrow(), 3.into());
+        assert_eq!(*iter.next().unwrap().unwrap().borrow(), 2.into());
+        assert_eq!(*iter.next().unwrap().unwrap().borrow(), 1.into());
         assert!(iter.next().is_none());
     }
 
