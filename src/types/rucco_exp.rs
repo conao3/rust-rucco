@@ -216,7 +216,7 @@ impl RuccoExp {
             .take(M)
             .collect::<Vec<_>>()
             .try_into()
-            .unwrap();
+            .expect("should be same length");
 
         Ok(lst)
     }
