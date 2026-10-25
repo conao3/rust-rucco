@@ -14,7 +14,7 @@ pub struct Reader<'a> {
 }
 
 impl Reader<'_> {
-    pub fn new<'a>(input: &'a str, arena: &'a mut types::RuccoArena) -> Reader {
+    pub fn new<'a>(input: &'a str, arena: &'a mut types::RuccoArena) -> Reader<'a> {
         Reader { input, arena }
     }
 
