@@ -1,4 +1,12 @@
-# rucco
+<p align="center"><img src="docs/assets/banner.png" alt="rucco: A Common Lisp interpreter written in Rust, with an interactive REPL" width="880"></p>
+
+<p align="center"><strong>A Common Lisp interpreter written in Rust, with an interactive REPL</strong></p>
+
+<p align="center"><a href="LICENSE"><img src="https://img.shields.io/github/license/conao3/rust-rucco" alt="License"></a> <a href="https://github.com/conao3/rust-rucco/stargazers"><img src="https://img.shields.io/github/stars/conao3/rust-rucco?style=flat" alt="GitHub stars"></a></p>
+
+<p align="center"><a href="#installation">Installation</a> | <a href="#usage">Usage</a> | <a href="#license">License</a></p>
+
+<h1>rucco</h1>
 
 A Common Lisp implementation written in Rust.
 
